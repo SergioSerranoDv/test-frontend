@@ -28,6 +28,9 @@ export const MobileNav: React.FC<MobileNavigationProps> = ({ isOPenMobileNav }) 
           <MobileNavigationItem>
             <a href="/">Inicio</a>
           </MobileNavigationItem>
+          <MobileNavigationItem>
+            <a href="/archive">Archive</a>
+          </MobileNavigationItem>
         </MobileNavigationList>
       </MobileNavigationContainer>
     </>
