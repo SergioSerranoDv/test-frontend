@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { UseGet } from "../../hook/UseGet"
 import { connect } from "react-redux"
 import { Label } from "../Label"
@@ -8,11 +8,14 @@ import {
   Input,
   NewLabelContainer,
 } from "../../styles/components/ModalLabel"
+import { backendApiCall } from "../../services/Api"
+import { createNewLabel } from "../../services/label_s"
 import { addLabel, deleteLabel, setLabels, updateLabel } from "../../state/actions/labelActions"
 import { LabelI } from "../../types/Label"
 import { ModalContainer, ModalWrapper, Layer, ModalButton } from "../../styles/components/Modal"
 
 interface ModalLabelProps {
+  addLabel: (label: any) => void
   deleteLabel: (id: number) => void
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>
   labels?: any
@@ -21,18 +24,39 @@ interface ModalLabelProps {
 }
 
 const ModalLabel: React.FC<ModalLabelProps> = ({
+  addLabel,
   deleteLabel,
   setShowModal,
   labels,
   setLabels,
   updateLabel,
 }) => {
+  const [label, setLabel] = useState("")
   const { data, error, isLoading } = UseGet("labels/all")
+
   useEffect(() => {
     if (data.length > 0) {
       setLabels && setLabels(data)
     }
   }, [data])
+  const handleChangeLabel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLabel(e.target.value)
+  }
+  const handleAddLabel = async (label: any) => {
+    try {
+      const response = await createNewLabel(backendApiCall, label)
+      if (response.status === "success") {
+        console.log("Label added")
+        addLabel({
+          id: response.data.id,
+          name: response.data.name,
+        })
+        setLabel("")
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
   return (
     <div>
       <Layer></Layer>
@@ -60,9 +84,20 @@ const ModalLabel: React.FC<ModalLabelProps> = ({
                 <path d="m14.53 4.53l-1.06-1.06-4.47 4.47-4.47-4.47-1.06 1.06 4.47 4.47-4.47 4.47 1.06 1.06 4.47-4.47 4.47 4.47 1.06-1.06-4.47-4.47z" />
               </svg>
             </CloseButton>
-            <Input type="text" placeholder="Create new label" />
+            <Input
+              type="text"
+              placeholder="Create new label"
+              value={label}
+              onChange={handleChangeLabel}
+            />
 
-            <CheckButton role="button" aria-label="check">
+            <CheckButton
+              role="button"
+              aria-label="check"
+              onClick={() => {
+                handleAddLabel({ name: label })
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 height="18px"
@@ -80,9 +115,9 @@ const ModalLabel: React.FC<ModalLabelProps> = ({
               !error &&
               labels.labels &&
               labels.labels.length > 0 &&
-              labels.labels.map((label: any) => (
+              labels.labels.map((label: any, index: number) => (
                 <Label
-                  key={label.id}
+                  key={index}
                   label={label}
                   deleteLabel={deleteLabel}
                   updaLabelState={updateLabel}
